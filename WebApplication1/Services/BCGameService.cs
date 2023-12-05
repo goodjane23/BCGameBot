@@ -9,7 +9,7 @@ public class BCGameService
     /// <summary>
     /// Сreate num sequence for player
     /// </summary>
-    private void GenerateNum()
+    public void GenerateNum()
     {
         int count = 0;
 

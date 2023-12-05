@@ -3,6 +3,7 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace WebApplication1.Services;
 
@@ -57,15 +58,39 @@ public class CoreService : IHostedService
                         chat.Id,
                         Strings.RulesText);
                 }
-                var stepResult = .GetMessage(update.Message.Text);
+               
+                var stepResult = game.CheckAnswer(update.Message.Text);
                 var messageFin = string.Empty;
+               
+                if (!stepResult.IsWin)
+                {
+                    messageFin = $"{message.Text} | Быков: {stepResult.Nums[0]}, коров: {stepResult.Nums[1]}";
+                }
+                else
+                {
+                    KeyboardButton keyboardButton = new KeyboardButton("Еще раз");
+                    var replayMarkup = new ReplyKeyboardMarkup(keyboardButton);
+                    await client.SendTextMessageAsync(
+                        chat.Id, Strings.FinishText,
+                        replyMarkup: replayMarkup);                    
+                }
+                await client.SendTextMessageAsync(
+                        chat.Id,
+                        messageFin);
             }
+        }
+        catch (ArgumentException)
+        {
+            await client.SendTextMessageAsync(
+                        chat.Id,
+                        Strings.NotValidMessageText);
         }
         catch (Exception)
         {
-
-            throw;
-        }
+            await client.SendTextMessageAsync(
+                         chat.Id,
+                         Strings.CommonExeptionText);
+        } 
     }
     private Task ErrorHandler(ITelegramBotClient botClient, Exception error, CancellationToken cancellationToken)
     {
