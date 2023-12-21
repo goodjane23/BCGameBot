@@ -11,13 +11,16 @@ public class CoreService : IHostedService
 {
     private readonly ITelegramBotClient сlient;
     private readonly BCGameService game;
+    private readonly RedisService redisService;
 
     public CoreService(
         ITelegramBotClient сlient, 
-        BCGameService bCGameService)        
+        BCGameService bCGameService,
+        RedisService redisService)        
     {
         this.сlient = сlient;
         this.game = bCGameService;
+        this.redisService = redisService;
     }
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -26,7 +29,7 @@ public class CoreService : IHostedService
             сlient.StartReceiving(UpdateHandler, 
                 ErrorHandler,
                 cancellationToken:cancellationToken);
-            game.GenerateNum();
+            
 
         }
         catch (Exception)
@@ -50,8 +53,11 @@ public class CoreService : IHostedService
                     await client.SendTextMessageAsync(
                         chat.Id,
                         Strings.StartText);
+                    var quiz = await game.GenerateNum();
+                    redisService.SetData(chat.Id, quiz);
 
                 }
+
                 if (message.Text.Equals("/rules", StringComparison.OrdinalIgnoreCase))
                 {
                     await client.SendTextMessageAsync(

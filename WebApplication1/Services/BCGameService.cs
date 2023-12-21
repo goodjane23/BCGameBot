@@ -9,7 +9,7 @@ public class BCGameService
     /// <summary>
     /// Сreate num sequence for player
     /// </summary>
-    public void GenerateNum()
+    public async Task<string> GenerateNum()
     {
         int count = 0;
 
@@ -23,6 +23,7 @@ public class BCGameService
                 count++;
             }
         }
+        return quiz;
     }
 
     private bool CheckCorrect(string input)

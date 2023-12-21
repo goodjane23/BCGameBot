@@ -7,6 +7,7 @@ var key = builder.Configuration["TelegramKey"];
 
 var client = new TelegramBotClient(key);
 
+services.AddSingleton<RedisService>();
 services.AddSingleton<ITelegramBotClient>(client);
 services.AddSingleton<BCGameService>();
 services.AddHostedService<CoreService>();
