@@ -2,17 +2,22 @@
 
 public class BCGameService
 {
-    private string quiz = "";
     private byte bull;
     private byte cow;
 
+    private readonly RedisService redis;
+
+    public BCGameService(RedisService redis)
+    {
+        this.redis = redis;
+    }
     /// <summary>
     /// Сreate num sequence for player
     /// </summary>
-    public async Task<string> GenerateNum()
+    public string GenerateNum()
     {
         int count = 0;
-
+        var quiz = "";
         while (count != 4)
         {
             int num = Random.Shared.Next(0, 10);
@@ -39,8 +44,8 @@ public class BCGameService
         return true;
     }
 
-    private bool CompareStrings(string input)
-    {
+    private bool CompareStrings(string input, string quiz)
+    {        
         if (input.Equals(quiz))
             return true;
 
@@ -63,12 +68,17 @@ public class BCGameService
         return bull == 4;
     }
 
-    public AnswerGame CheckAnswer(string input)
+    public AnswerGame CheckAnswer(string input, string id)
     {
+        var quiz = redis.GetUserQuiz(id).Result;
+
+        if (quiz is null)
+            return new AnswerGame(false, 0, 0);
+
         var isCorrect = CheckCorrect(input);
         if (isCorrect)
         {
-            var isWin = CompareStrings(input);
+            var isWin = CompareStrings(input, quiz);
             if (!isWin)
             {
                 return new AnswerGame(false, bull, cow);

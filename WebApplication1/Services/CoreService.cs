@@ -1,4 +1,5 @@
-﻿using Telegram.Bot;
+﻿using System.Net.Http.Headers;
+using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
@@ -29,8 +30,6 @@ public class CoreService : IHostedService
             сlient.StartReceiving(UpdateHandler, 
                 ErrorHandler,
                 cancellationToken:cancellationToken);
-            
-
         }
         catch (Exception)
         {
@@ -47,42 +46,42 @@ public class CoreService : IHostedService
         {
             if (update.Type is UpdateType.Message)
             {
-                //commands
-                if (message.Text.Equals("/start", StringComparison.OrdinalIgnoreCase))
+                switch (message.Text)
                 {
-                    await client.SendTextMessageAsync(
-                        chat.Id,
-                        Strings.StartText);
-                    var quiz = await game.GenerateNum();
-                    redisService.SetData(chat.Id, quiz);
+                    case "/start" or "Еще раз":
+                        await client.SendTextMessageAsync(
+                            chat.Id,
+                            Strings.StartText);
+                        var quiz = game.GenerateNum();
+                        await redisService.SetUserQuiz(chat.Id.ToString(), quiz);
+                        break;
+                    case "/rules":
+                        await client.SendTextMessageAsync(
+                            chat.Id,
+                            Strings.RulesText);
+                        break;
+                    default:
+                        var stepResult = game.CheckAnswer(update.Message.Text, chat.Id.ToString());
+                        var messageFin = string.Empty;
 
+                        if (!stepResult.IsWin)
+                        {
+                            messageFin = $"{message.Text} | Быков: {stepResult.Nums[0]}, коров: {stepResult.Nums[1]}";
+                            await client.SendTextMessageAsync(
+                                chat.Id,
+                                messageFin);
+                        }
+                        else
+                        {
+                            redisService.CleanUserKey(chat.Id.ToString());
+                            KeyboardButton keyboardButton = new KeyboardButton("Еще раз");
+                            var replayMarkup = new ReplyKeyboardMarkup(keyboardButton);
+                            await client.SendTextMessageAsync(
+                                chat.Id, Strings.FinishText,
+                                replyMarkup: replayMarkup);
+                        }
+                        break;
                 }
-
-                if (message.Text.Equals("/rules", StringComparison.OrdinalIgnoreCase))
-                {
-                    await client.SendTextMessageAsync(
-                        chat.Id,
-                        Strings.RulesText);
-                }
-               
-                var stepResult = game.CheckAnswer(update.Message.Text);
-                var messageFin = string.Empty;
-               
-                if (!stepResult.IsWin)
-                {
-                    messageFin = $"{message.Text} | Быков: {stepResult.Nums[0]}, коров: {stepResult.Nums[1]}";
-                }
-                else
-                {
-                    KeyboardButton keyboardButton = new KeyboardButton("Еще раз");
-                    var replayMarkup = new ReplyKeyboardMarkup(keyboardButton);
-                    await client.SendTextMessageAsync(
-                        chat.Id, Strings.FinishText,
-                        replyMarkup: replayMarkup);                    
-                }
-                await client.SendTextMessageAsync(
-                        chat.Id,
-                        messageFin);
             }
         }
         catch (ArgumentException)

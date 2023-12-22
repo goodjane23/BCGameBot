@@ -12,7 +12,7 @@ public class RedisService
         database = redis.GetDatabase();
     }
 
-    public async Task<string>? GetData(string userId)
+    public async Task<string?> GetUserQuiz(string userId)
     {
         var result = await database.StringGetAsync(userId);
 
@@ -22,11 +22,14 @@ public class RedisService
         return null;
     }
 
-    public async Task SetData(string userId, string num)
+    public async Task SetUserQuiz(string userId, string num)
     {
         await database.StringSetAsync(userId, num);
     }
 
-
+    public void CleanUserKey(string key)
+    {
+        database.KeyDelete(key);
+    }
 
 }
