@@ -1,0 +1,23 @@
+services:
+  telegrambot:
+    container_name: BullAndCowsBot
+    image: webapplication1:latest
+    depends_on: 
+      - redis
+    ports:
+      - 1337:4562
+    environment:
+      - Redis__Url=redis:6379
+      - TelegramKey=1845885318:AAFhmYrs6jP-dg640tCTvjkUftzJ1e4RHdk
+      - ASPNETCORE_URLS=http://*:4562
+        
+  
+  redis:
+    container_name: Redis  
+    image: redis:7.2
+    ports:
+      - 6379:6379
+    
+
+       
+

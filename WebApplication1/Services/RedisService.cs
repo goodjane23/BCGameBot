@@ -1,4 +1,5 @@
-﻿using StackExchange.Redis;
+﻿using Microsoft.Extensions.Options;
+using StackExchange.Redis;
 
 namespace WebApplication1.Services;
 
@@ -6,9 +7,10 @@ public class RedisService
 {
     private readonly IDatabase database;
 
-    public RedisService()
+    public RedisService(
+        IOptions<RedisOptions> redisOptions)
     {
-        var redis = ConnectionMultiplexer.Connect("localhost");
+        var redis = ConnectionMultiplexer.Connect(redisOptions.Value.Url);
         database = redis.GetDatabase();
     }
 
