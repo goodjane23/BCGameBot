@@ -118,8 +118,7 @@ public class CoreService : IHostedService
     }
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        //throw new NotImplementedException();
-        Debug debug = new Debug();
+        throw new NotImplementedException();
     }
 
 }
