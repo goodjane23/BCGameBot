@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Diagnostics;
+using System.Net.Http.Headers;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
@@ -30,6 +31,7 @@ public class CoreService : IHostedService
             сlient.StartReceiving(UpdateHandler, 
                 ErrorHandler,
                 cancellationToken:cancellationToken);
+            Console.WriteLine($"Bot is starting");
         }
         catch (Exception)
         {
@@ -40,12 +42,15 @@ public class CoreService : IHostedService
 
     private async Task UpdateHandler(ITelegramBotClient client, Update update, CancellationToken token)
     {
+        Console.WriteLine($"Update is comming. Update type: {update.Type}");
         var message = update.Message;
+     
         var chat = message.Chat;
         try
         {
             if (update.Type is UpdateType.Message)
             {
+                Console.WriteLine($"Update message: {update.Message.Text}");
                 switch (message.Text)
                 {
                     case "/start" or "Еще раз":
@@ -84,17 +89,19 @@ public class CoreService : IHostedService
                 }
             }
         }
-        catch (ArgumentException)
+        catch (ArgumentException ex)
         {
             await client.SendTextMessageAsync(
                         chat.Id,
                         Strings.NotValidMessageText);
+            Console.WriteLine($"{message} was input");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             await client.SendTextMessageAsync(
                          chat.Id,
                          Strings.CommonExeptionText);
+            Console.WriteLine($"{message} was input: {ex.Message}");
         } 
     }
     private Task ErrorHandler(ITelegramBotClient botClient, Exception error, CancellationToken cancellationToken)
@@ -111,7 +118,8 @@ public class CoreService : IHostedService
     }
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        //throw new NotImplementedException();
+        Debug debug = new Debug();
     }
 
 }
